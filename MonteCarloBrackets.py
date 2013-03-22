@@ -53,7 +53,7 @@ def energy_of_flipping(current_winner, current_loser):
     return (energy_game(current_loser, current_winner) - 
             energy_game(current_winner, current_loser))
 
-#@profile
+@profile
 def simulate(ntrials, region, T, printonswap=False, showvis=True, newfig=False,
              teamdesc=None, printbrackets=True):
     """
@@ -122,7 +122,7 @@ def simulate(ntrials, region, T, printonswap=False, showvis=True, newfig=False,
         print lb
         print "Most common bracket (%s)"%mcb_count
         print mcb
-    return (lb,mcb)
+    return (lb,mcb,mcb_count)
 
 def runbracket1(ntrials, T):
     simulate(ntrials,'all',T)
@@ -135,8 +135,9 @@ def runbracket2(ntrials1, ntrials2, T):
                                    teamdesc=region, printbrackets=False)
     # Make a new bracket from our final four
     teams = [results[region][1].bracket[-1][0] for region in regions]
-    ff_lb, ff_mcb = simulate(ntrials2, teams, T, newfig=i+1, 
-                             teamdesc="Final Four", printbrackets=False)
+    ff_lb, ff_mcb, ff_mcb_count = simulate(ntrials2, teams, T, newfig=i+1, 
+                                        teamdesc="Final Four",
+                                        printbrackets=False)
 
     print "YOUR LOWEST ENERGY BRACKETS"
     for region in regions:
@@ -150,9 +151,13 @@ def runbracket2(ntrials1, ntrials2, T):
     for region in regions:
         print "MOST COMMON BRACKET FOR REGION", region
         print results[region][1]
+        print "number of times this bracket happened:",results[region][2]
+        print 
         print
     print "MOST COMMON BRACKET FOR FINAL FOUR"
     print ff_mcb
+    print "number of times this bracket happened:",ff_mcb_count
+
 
 # now you can call deltaU(current_winner,current_loser) if you'd like.
 deltaU = energy_of_flipping
