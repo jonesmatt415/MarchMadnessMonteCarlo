@@ -1,15 +1,22 @@
-from Brackets import *
-from Stats import *
-from JeffSagarin import *
-from KenPomeroy import *
-from Stats import *
-from MonteCarloBrackets import *
-from RankingsAndStrength import *
+__date__ = 2015
+__version__ = 0.2
+
+#from Brackets import *
+#from Stats import *
+#from JeffSagarin import *
+#from KenPomeroy import *
+#from Stats import *
+from MonteCarloBrackets import simulate
+#from RankingsAndStrength import *
 
 """
-This is a modified version of the Monte Carlo March Madness Bracket code
-originally written by Michael Lerner, PhD. Original code and more detail can
-be found here:
+This is March Madness Monte Carlo code, originally written by Michael Lerner
+and described on his [blog](http://www.mglerner.com/blog/?p=16), then modified
+by Daniel Smith and posted to
+[github](https://github.com/Daniel-B-Smith/MarchMadnessMonteCarlo) and forked
+back by Michael Lerner on his own
+[github](https://github.com/mglerner/MarchMadnessMonteCarlo) project.
 
-http://www.mglerner.com/blog/?p=16
+Check out the blog post for a nice summary.
 """
+
