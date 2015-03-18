@@ -97,4 +97,4 @@ all_teams = teams['midwest'] + teams['south'] + teams['west'] + teams['east']
 teams['all'] = all_teams
 
 
-from Brackets import Bracket, simulate, runbracket1, runbracket2
+from Brackets import Bracket, simulate, runbracket1, runbracket2, playgame

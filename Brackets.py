@@ -137,7 +137,7 @@ def getroundmap(bracket, include_game_number):
     return round
 
 #@profile
-def simulate(ntrials, region, T, printonswap=False, showvis=True, newfig=False,
+def simulate(ntrials, region, T, printonswap=False, showvis=True, newfig=True,
              teamdesc=None, printbrackets=True):
     """
     If region is "west" "midwest" "south" or "east" we'll run a bracket based 
