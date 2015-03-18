@@ -81,7 +81,6 @@ def showstats(brackets, unique_brackets, lowest_sightings, newfig=True,
               teamdesc=None,figsize=(15,8)):
     if newfig is not False:
         if newfig is True:
-            print "Here I am",figsize
             plt.figure(figsize=figsize)
         else:
             plt.figure(newfig,figsize=figsize)

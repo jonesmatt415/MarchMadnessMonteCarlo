@@ -205,7 +205,7 @@ def simulate(ntrials, region, T, printonswap=False, showvis=True, newfig=True,
         print lb
         print "Most common bracket (%s)"%mcb_count
         print mcb
-    return (lb,mcb,mcb_count)
+    return SimulationResults(brackets,unique_brackets,lb,mcb,mcb_count)
 
 def runbracket1(ntrials, T):
     simulate(ntrials,'all',T)
@@ -218,7 +218,8 @@ def runbracket2(ntrials1, ntrials2, T):
                                    teamdesc=region, printbrackets=False)
     # Make a new bracket from our final four
     teams = [results[region][1].bracket[-1][0] for region in regions]
-    ff_lb, ff_mcb, ff_mcb_count = simulate(ntrials2, teams, T, newfig=i+1, 
+#    ff_lb, ff_mcb, ff_mcb_count = simulate(ntrials2, teams, T, newfig=i+1, 
+    ff_lb, ff_mcb, ff_mcb_count = simulate(ntrials2, teams, T, newfig=1, 
                                         teamdesc="Final Four",
                                         printbrackets=False)
 
@@ -240,8 +241,10 @@ def runbracket2(ntrials1, ntrials2, T):
     print "MOST COMMON BRACKET FOR FINAL FOUR"
     print ff_mcb
     print "number of times this bracket happened:",ff_mcb_count
+    return
 
-
+from collections import namedtuple
+SimulationResults = namedtuple('SimulationResults','brackets unique_brackets lowest_bracket most_common_bracket most_common_bracket_count')
 
 class Bracket(object):
     def __init__(self, teams, T, bracket=None):
