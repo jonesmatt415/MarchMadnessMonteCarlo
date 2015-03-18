@@ -13,8 +13,6 @@ from collections import Counter, OrderedDict
 
 import RankingsAndStrength as RAS
 
-import Brackets
-from Brackets import Bracket
 
 def movingaverage(interval, window_size):
     window= ones(int(window_size))/float(window_size)

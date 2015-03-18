@@ -10,6 +10,41 @@ import scipy
 from time import sleep
 from copy import deepcopy
 from collections import Counter, OrderedDict
+#from decorators import memoized
+import MarchMadnessMonteCarlo as MMMC
+from MarchMadnessMonteCarlo import RankingsAndStrength as RAS
+from MarchMadnessMonteCarlo import Visualization
+#from MarchMadnessMonteCarlo import Stats
+
+regional_rankings = MMMC.regional_rankings
+#strength = RAS.kenpom['Luck']
+#strength = RAS.sagarin['Rating']
+strength = RAS.kenpom['Pyth']
+
+#T = 0.5 # In units of epsilon/k
+#T = 2.5 # In units of epsilon/k
+
+#@memoized
+def default_energy_game(winner, loser):
+    """This is where you'll input your own energy functions. Here are
+    some of the things we talked about in class. Remember that you
+    want the energy of an "expected" outcome to be lower than that of
+    an upset.
+    """
+    result = -(strength[winner]/strength[loser])
+    return result
+
+energy_game = default_energy_game
+
+#@memoized
+def energy_of_flipping(current_winner, current_loser):
+    """Given the current winner and the current loser, this calculates
+    the energy of swapping, i.e. having the current winner lose.
+    """
+    return (energy_game(current_loser, current_winner) - 
+            energy_game(current_winner, current_loser))
+
+deltaU = energy_of_flipping
 
 # Here are the "magic functions" I mentioned to get pairs of teams.
 from itertools import izip_longest
@@ -21,6 +56,8 @@ def grouper(n, iterable, fillvalue=None):
 
 def pairs(iterable):
     return grouper(2,iterable)
+
+
 
 def playgame(team1, team2, T):
     """There's a difference between flipping a game in an existing
@@ -98,6 +135,113 @@ def getroundmap(bracket, include_game_number):
                 round[g] = i
             g += 1
     return round
+
+#@profile
+def simulate(ntrials, region, T, printonswap=False, showvis=True, newfig=False,
+             teamdesc=None, printbrackets=True):
+    """
+    If region is "west" "midwest" "south" or "east" we'll run a bracket based 
+    just on those teams.
+    If it's "all" we'll run a full bracket.
+    If it's a list of teams, we'll run a bracket based just on that list.
+
+    So, one way you might want to do things is to simulate 10000 runs for each 
+    of the four brackets,
+    then run your final four explicitly, e.g.
+
+    T = 1.5
+    simulate(10000,'midwest',T)
+    # record results
+    simulate(10000,'south',T)
+    # record results
+    simulate(10000,'west',T)
+    # record results
+    simulate(10000,'east',T)
+    # record results
+
+    simulate(10000,['Louisville','Kansas','Wisconsin','Indiana'],T)
+    """
+
+    if type(region)  in (type([]), type(())):
+        teams = region[:]
+    else:
+        teams = MMMC.teams[region]
+    b = Bracket(teams, T)
+    energy = b.energy()
+    ng = sum(b.games_in_rounds) # total number of games
+    # Let's collect some statistics
+    brackets = []
+    for trial in xrange(ntrials):
+        g = randint(0, ng) # choose a random game to swap
+        #print "attempted swap for game",g#,"in round",round[g]
+        #newbracket = deepcopy(b)
+        newbracket = b.copy()
+        newbracket.swap(g)
+        newenergy = newbracket.energy()
+        ediff = newenergy - energy
+        if ediff <= 0:
+            b = newbracket
+            energy = newenergy
+            if printonswap:
+                print "LOWER"
+                print b
+        else:
+            if random() < exp(-ediff/T):
+                b = newbracket
+                energy = newenergy
+                if printonswap:
+                    print "HIGHER"
+                    print b
+        brackets.append(b)
+
+
+    lb, mcb, mcb_count, unique_brackets, lowest_sightings = \
+        Stats.gather_uniquestats(brackets)
+    if showvis:
+        Visualization.showstats(brackets, unique_brackets, lowest_sightings, 
+                                newfig=newfig, teamdesc=teamdesc)
+    if printbrackets:
+        print "Lowest energy bracket"
+        print lb
+        print "Most common bracket (%s)"%mcb_count
+        print mcb
+    return (lb,mcb,mcb_count)
+
+def runbracket1(ntrials, T):
+    simulate(ntrials,'all',T)
+
+def runbracket2(ntrials1, ntrials2, T):
+    results = {}
+    regions = 'midwest west south east'.split()
+    for (i,region) in enumerate(regions):
+        results[region] = simulate(ntrials1, region, T, newfig=i, 
+                                   teamdesc=region, printbrackets=False)
+    # Make a new bracket from our final four
+    teams = [results[region][1].bracket[-1][0] for region in regions]
+    ff_lb, ff_mcb, ff_mcb_count = simulate(ntrials2, teams, T, newfig=i+1, 
+                                        teamdesc="Final Four",
+                                        printbrackets=False)
+
+    print "YOUR LOWEST ENERGY BRACKETS"
+    for region in regions:
+        print "LOWEST ENERGY BRACKET FOR REGION", region
+        print results[region][0]
+        print
+    print "LOWEST ENERGY BRACKET FOR FINAL FOUR"
+    print ff_lb
+        
+    print "YOUR MOST COMMON BRACKETS"
+    for region in regions:
+        print "MOST COMMON BRACKET FOR REGION", region
+        print results[region][1]
+        print "number of times this bracket happened:",results[region][2]
+        print 
+        print
+    print "MOST COMMON BRACKET FOR FINAL FOUR"
+    print ff_mcb
+    print "number of times this bracket happened:",ff_mcb_count
+
+
 
 class Bracket(object):
     def __init__(self, teams, T, bracket=None):
@@ -213,15 +357,14 @@ def bracket_to_string(all_winners):
 
     def tr(i,include_rank=False,maxlen=None):
         """ Print out the team and ranking """
-        import RankingsAndStrength as RAS
         if maxlen is not None:
             team = i[:maxlen]
         else:
             team = i
         if include_rank:
             try:
-                region = RAS.regions[i]
-                result = '%s (%s)'%(team,int(RAS.regional_rankings[i]))
+                region = MMMC.regions[i]
+                result = '%s (%s)'%(team,int(MMMC.regional_rankings[i]))
             except KeyError:
                 result = '%s'%(team)
         return result
@@ -235,6 +378,26 @@ def bracket_to_string(all_winners):
     result += "Total bracket energy: %s"%bracket_energy(all_winners)
     result += '\n'
     return result
-    
+
 def print_bracket(bracket):
     print bracket_to_string(bracket)
+
+class Stats:
+    @staticmethod
+    def gather_uniquestats(brackets):
+        lb = Bracket(brackets[0].teams, T=0.0000001) # low bracket
+        low_hash = hash(lb)
+        cnt = Counter()
+        unique_brackets = []
+        lowest_sightings = []
+        brackets_by_hash = {}
+        for b in brackets:
+            h = hash(b)
+            cnt[h] += 1
+            unique_brackets.append(len(cnt))
+            lowest_sightings.append(cnt[low_hash])
+            brackets_by_hash[h] = b
+        h,c = cnt.most_common(1)[0]
+        mcb = brackets_by_hash[h] # most comon bracket
+        return lb, mcb, c, unique_brackets, lowest_sightings
+

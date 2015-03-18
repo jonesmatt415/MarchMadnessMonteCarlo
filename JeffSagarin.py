@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 from __future__ import division
 import MarchMadnessMonteCarlo as MMMC
-print "COWS"
-print MMMC.__file__
 
 if MMMC.__date__ == 2015:
     lineparts = ["Rank","Team","Rating","W","L","Schedule","ScheduleRank","WinsVsTop25","LossesVsTop25","WinsVsTop50","LossesVsTop50","ELO_SCORE","ELO_RANK","PREDICTOR","PREDICTOR_RANK"]
